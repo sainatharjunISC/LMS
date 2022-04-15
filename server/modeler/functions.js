@@ -78,7 +78,7 @@ const updateToDrying = (orderID) => {
 const updateToIroning = async (orderID,totalItems) => {
   let ret;
   await db.collection('orderCount').doc('orderCountPerDay').get().then(async (res)=>{
-    if(res.data().Ironing<100){
+    if(res.data().Ironing+parseInt(totalItems)<100){
       await db.collection('orderCount').doc('orderCountPerDay').update({Ironing:parseInt(res.data().Ironing)+parseInt(totalItems)}).then(()=>{
         ret= new Promise((resolve, reject) => {
           setTimeout(()=>{
@@ -109,7 +109,7 @@ const readyToPickUp = (orderID) => {
 
 const washProcess = async (orderID,totalItems) => {
   db.collection('orderCount').doc('orderCountPerDay').get().then((res)=>{
-    if(res.data().Washing<100){
+    if(res.data().Washing+parseInt(totalItems)<100){
       db.collection('orderCount').doc('orderCountPerDay').update({Washing:parseInt(res.data().Washing)+parseInt(totalItems)}).then(()=>{
         updateToPreparingToWash(orderID).then(()=>{
           updateToWashing(orderID).then(()=>{
@@ -137,7 +137,7 @@ const washProcess = async (orderID,totalItems) => {
 
 const ironProcess = async (orderID,totalItems) => {
   db.collection('orderCount').doc('orderCountPerDay').get().then((res)=>{
-    if(res.Ironing<100){
+    if(res.Ironing+parseInt(totalItems)<100){
       db.collection('orderCount').doc('orderCountPerDay').update({Ironing:parseInt(res.Ironing)+parseInt(totalItems)}).then(()=>{
         updateToPreparingToIron(orderID).then(()=>{
               updateToIroning(orderID).then(()=>{
@@ -167,5 +167,14 @@ module.exports.ironingFun = (orderID,totalItems,res)=>{
 
   let ret=ironProcess(orderID,totalItems)
   res.send(ret)
+
+}
+
+module.exports.resetFun = ()=>{
+
+  db.collection('orderCount').doc('orderCountPerDay').update({
+    Washing:0,
+    Ironing:0
+  })
 
 }
